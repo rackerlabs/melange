@@ -104,7 +104,7 @@ class TestQueueNotifier(tests.BaseTest, NotifierTestBase):
         with unit.StubTime(time=datetime.datetime(2050, 1, 1)):
             self._setup_queue_mock("warn", "test_event", "test_message")
             self.mock.StubOutWithMock(messaging, "Queue")
-            messaging.Queue("melange.notifier.WARN",
+            messaging.Queue("melange_notifications.warn",
                             "notifier").AndReturn(self.mock_queue)
             self.mock.ReplayAll()
 
@@ -114,7 +114,7 @@ class TestQueueNotifier(tests.BaseTest, NotifierTestBase):
         with unit.StubTime(time=datetime.datetime(2050, 1, 1)):
             self._setup_queue_mock("info", "test_event", "test_message")
             self.mock.StubOutWithMock(messaging, "Queue")
-            messaging.Queue("melange.notifier.INFO",
+            messaging.Queue("melange_notifications.info",
                             "notifier").AndReturn(self.mock_queue)
             self.mock.ReplayAll()
 
@@ -124,7 +124,7 @@ class TestQueueNotifier(tests.BaseTest, NotifierTestBase):
         with unit.StubTime(time=datetime.datetime(2050, 1, 1)):
             self.mock.StubOutWithMock(messaging, "Queue")
             self._setup_queue_mock("error", "test_event", "test_message")
-            messaging.Queue("melange.notifier.ERROR",
+            messaging.Queue("melange_notifications.error",
                             "notifier").AndReturn(self.mock_queue)
             self.mock.ReplayAll()
 
