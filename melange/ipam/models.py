@@ -402,6 +402,10 @@ class IpBlock(ModelBase):
                 except exception.NoMoreAddressesError:
                     clear_addresses(policy_excluded_addresses)
                     raise
+                except Exception:
+                    LOG.exception("Caught unplanned exception")
+                    clear_addresses(policy_excluded_addresses)
+                    raise
 
                 # NOTE(jkoelker) policy enforcement is no-bueno ;(
                 if not self._address_is_allocatable(self.policy(),
