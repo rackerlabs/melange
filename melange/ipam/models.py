@@ -1085,6 +1085,10 @@ class Interface(ModelBase):
             self._add_error('virtual_interface_id',
                             msg % self.virtual_interface_id)
 
+    @classmethod
+    def find_all_interfaces(cls, **kwargs):
+        return db.db_api.find_all_interfaces(**kwargs)
+
     @property
     def virtual_interface_id(self):
         return self.vif_id_on_device or self.id

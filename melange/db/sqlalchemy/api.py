@@ -153,6 +153,12 @@ def find_natted_ips(**kwargs):
     return _base_query(mappers.IpNat).filter_by(**kwargs)
 
 
+def find_all_interfaces(**kwargs):
+    query = _query_by(ipam.models.Interface, **kwargs)
+    query = query.order_by(ipam.models.Interface.created_at)
+    return query
+
+
 def find_all_blocks_with_deallocated_ips():
     deallocate = True
     return _base_query(ipam.models.IpBlock).\
