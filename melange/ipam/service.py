@@ -519,7 +519,7 @@ class InstanceInterfacesController(BaseController):
         return {'instance': {'interfaces': created_interfaces}}
 
     def index(self, request, device_id):
-        interfaces = models.Interface.find_all(device_id=device_id)
+        interfaces = models.Interface.find_all_interfaces(device_id=device_id)
         view_data = [views.InterfaceConfigurationView(iface).data()
                      for iface in interfaces]
 
