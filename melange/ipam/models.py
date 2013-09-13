@@ -48,7 +48,8 @@ class ModelBase(object):
 
     @classmethod
     def create(cls, **values):
-        values['id'] = utils.generate_uuid()
+        if 'id' not in values or values['id'] is None:
+            values['id'] = utils.generate_uuid()
         values['created_at'] = utils.utcnow()
         instance = cls(**values).save()
         instance._notify_fields("create")
@@ -946,7 +947,7 @@ class Interface(ModelBase):
     @classmethod
     def find_or_configure(cls, virtual_interface_id=None, device_id=None,
                           tenant_id=None, mac_address=None):
-        interface = Interface.get_by(vif_id_on_device=virtual_interface_id,
+        interface = Interface.get_by(id=virtual_interface_id,
                                      tenant_id=tenant_id)
         if interface:
             return interface
@@ -978,7 +979,7 @@ class Interface(ModelBase):
     @classmethod
     def create_and_configure(cls, virtual_interface_id=None, device_id=None,
                              tenant_id=None, mac_address=None):
-        interface = Interface.create(vif_id_on_device=virtual_interface_id,
+        interface = Interface.create(id=virtual_interface_id,
                                      device_id=device_id,
                                      tenant_id=tenant_id)
         if mac_address:
@@ -1091,7 +1092,7 @@ class Interface(ModelBase):
 
     @property
     def virtual_interface_id(self):
-        return self.vif_id_on_device or self.id
+        return self.id
 
     @classmethod
     def delete_by(self, **kwargs):
