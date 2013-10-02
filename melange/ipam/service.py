@@ -413,12 +413,12 @@ class InterfaceIpAllocationsController(BaseController):
 
     def bulk_delete(self, request, network_id, interface_id, tenant_id):
         network = models.Network.find_by(id=network_id, tenant_id=tenant_id)
-        interface = models.Interface.find_by(vif_id_on_device=interface_id)
+        interface = models.Interface.find_by(id=interface_id)
         network.deallocate_ips(interface_id=interface.id)
 
     def index(self, request, network_id, interface_id, tenant_id):
         network = models.Network.find_by(id=network_id, tenant_id=tenant_id)
-        interface = models.Interface.find_by(vif_id_on_device=interface_id)
+        interface = models.Interface.find_by(id=interface_id)
         ips_on_interface = network.allocated_ips(interface_id=interface.id)
         ip_configuration_view = views.IpConfigurationView(*ips_on_interface)
         return dict(ip_addresses=ip_configuration_view.data())
@@ -454,13 +454,13 @@ class InterfacesController(BaseController, ShowAction, DeleteAction):
 
     def show(self, request, virtual_interface_id, tenant_id=None):
         interface = models.Interface.find_by(
-            vif_id_on_device=virtual_interface_id,
+            id=virtual_interface_id,
             tenant_id=tenant_id)
         view_data = views.InterfaceConfigurationView(interface).data()
         return dict(interface=view_data)
 
     def delete(self, request, **kwargs):
-        kwargs['vif_id_on_device'] = kwargs.pop('virtual_interface_id', None)
+        kwargs['id'] = kwargs.pop('virtual_interface_id', None)
         LOG.debug("Deleting interface (kwargs=%s)" % kwargs)
         self._model.find_by(**kwargs).delete()
 
@@ -603,14 +603,14 @@ class InterfaceAllowedIpsController(BaseController):
 
     def index(self, request, interface_id, tenant_id):
         interface = models.Interface.find_by(
-            vif_id_on_device=interface_id,
+            id=interface_id,
             tenant_id=tenant_id)
         return dict(ip_addresses=[ip.data() for ip in interface.ips_allowed()])
 
     def create(self, request, interface_id, tenant_id, body=None):
         params = self._extract_required_params(body, 'allowed_ip')
         interface = models.Interface.find_by(
-            vif_id_on_device=interface_id,
+            id=interface_id,
             tenant_id=tenant_id)
         network = models.Network.find_by(id=params['network_id'])
         ip = network.find_allocated_ip(address=params['ip_address'],
@@ -620,14 +620,14 @@ class InterfaceAllowedIpsController(BaseController):
 
     def show(self, request, interface_id, tenant_id, address):
         interface = models.Interface.find_by(
-            vif_id_on_device=interface_id,
+            id=interface_id,
             tenant_id=tenant_id)
         ip = interface.find_allowed_ip(address)
         return dict(ip_address=ip.data())
 
     def delete(self, request, interface_id, tenant_id, address):
         interface = models.Interface.find_by(
-            vif_id_on_device=interface_id, tenant_id=tenant_id)
+            id=interface_id, tenant_id=tenant_id)
         ip = interface.find_allowed_ip(address)
         interface.disallow_ip(ip)
 

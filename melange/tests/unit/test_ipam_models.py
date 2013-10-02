@@ -32,14 +32,27 @@ from melange.tests.unit import mock_generator
 
 class TestModelBase(tests.BaseTest):
 
-    def test_create_ignores_inputs_for_auto_generated_attrs(self):
-        model = factory_models.PublicIpBlockFactory(id="input_id",
-                                                    created_at="input_time",
+    def test_create_ignores_inputs_for_auto_generated_timestamps(self):
+        model = factory_models.PublicIpBlockFactory(created_at="input_time",
                                                     updated_at="input_time")
 
-        self.assertNotEqual(model.id, "input_id")
         self.assertNotEqual(model.created_at, "input_time")
         self.assertNotEqual(model.updated_at, "input_time")
+
+    def test_create_sets_id_if_provided(self):
+        model = factory_models.PublicIpBlockFactory(id="1234")
+
+        self.assertEqual(model.id, "1234")
+
+    def test_create_sets_id_with_uuid_if_not_provided(self):
+        model = factory_models.PublicIpBlockFactory()
+
+        self.assertNotEqual(model.id, "1234")
+    
+    def test_create_sets_id_with_uuid_if_None_provided(self):
+        model = factory_models.PublicIpBlockFactory(id=None)
+
+        self.assertNotEqual(model.id, None)
 
     def test_create_sets_timestamps(self):
         current_time = datetime.datetime(2050, 1, 1)
@@ -713,7 +726,7 @@ class TestIpBlock(tests.BaseTest):
         net2_block = factory_models.IpBlockFactory(network_id="2")
 
         expected_error_msg = ("Interface %s is configured on another network"
-                              % iface_with_net1.vif_id_on_device)
+                              % iface_with_net1.id)
 
         self.assertRaisesExcMessage(models.IpAllocationNotAllowedError,
                                     expected_error_msg,
@@ -1360,7 +1373,7 @@ class TestIpAddress(tests.BaseTest):
         self.assertEqual(data['version'], ip.version)
         self.assertEqual(data['used_by_tenant'], interface.tenant_id)
         self.assertEqual(data['used_by_device'], interface.device_id)
-        self.assertEqual(data['interface_id'], interface.vif_id_on_device)
+        self.assertEqual(data['interface_id'], interface.id)
         self.assertEqual(data['created_at'], ip.created_at)
         self.assertEqual(data['updated_at'], ip.updated_at)
 
@@ -1420,17 +1433,11 @@ class TestIpAddress(tests.BaseTest):
         self.assertEqual(ipv6.version, 6)
 
     def test_retrieves_interface(self):
-        interface = factory_models.InterfaceFactory(vif_id_on_device="112")
+        interface = factory_models.InterfaceFactory(id="112")
         ip = factory_models.IpAddressFactory(interface_id=interface.id)
 
         self.assertEqual(ip.interface, interface)
         self.assertEqual(ip.interface.virtual_interface_id, "112")
-
-    def test_vif_id_on_device(self):
-        interface = factory_models.InterfaceFactory(vif_id_on_device="112")
-        ip = factory_models.IpAddressFactory(interface_id=interface.id)
-
-        self.assertEqual(ip.virtual_interface_id, "112")
 
     def test_mac_address(self):
         mac_range = factory_models.MacAddressRangeFactory()
@@ -2283,7 +2290,7 @@ class TestInterface(tests.BaseTest):
 
     def test_find_or_configure_finds_existing_interface(self):
         existing_interface = factory_models.InterfaceFactory(
-            vif_id_on_device="11234",
+            id="11234",
             device_id="huge_instance",
             tenant_id="tnt")
 
@@ -2296,7 +2303,7 @@ class TestInterface(tests.BaseTest):
 
     def test_find_or_configure_finds_without_device_id(self):
         existing_interface = factory_models.InterfaceFactory(
-            vif_id_on_device="11234",
+            id="11234",
             device_id="huge_instance",
             tenant_id="tnt")
 
@@ -2306,17 +2313,6 @@ class TestInterface(tests.BaseTest):
 
         self.assertEqual(existing_interface, interface_found)
 
-    def test_find_or_configure_fails_if_vif_exists_for_another_tenant(self):
-        factory_models.InterfaceFactory(vif_id_on_device="vif",
-                                        device_id="device",
-                                        tenant_id="tnt1")
-
-        self.assertRaises(models.InvalidModelError,
-                          models.Interface.find_or_configure,
-                          virtual_interface_id="vif",
-                          tenant_id="tnt2",
-                          device_id="device")
-
     def test_find_or_configure_creates_interface_when_not_found(self):
         interface = models.Interface.find_or_configure(
             virtual_interface_id="new_interface",
@@ -2325,7 +2321,7 @@ class TestInterface(tests.BaseTest):
 
         created_interface = models.Interface.find_by(id=interface.id)
         self.assertEqual(interface, created_interface)
-        self.assertEqual(created_interface.vif_id_on_device,
+        self.assertEqual(created_interface.id,
                          "new_interface")
         self.assertEqual(created_interface.device_id, "huge_instance")
         self.assertEqual(created_interface.tenant_id, "tenant")
@@ -2358,16 +2354,6 @@ class TestInterface(tests.BaseTest):
             tenant_id="tenant")
 
         self.assertIsNone(models.MacAddress.get_by(interface_id=interface.id))
-
-    def test_validate_virtual_interface_id_is_unique(self):
-        factory_models.InterfaceFactory(vif_id_on_device="iface_id")
-
-        dup_iface = factory_models.InterfaceFactory.build(
-            vif_id_on_device="iface_id")
-
-        self.assertFalse(dup_iface.is_valid())
-        self.assertEqual(dup_iface.errors['virtual_interface_id'],
-                         ["Virtual Interface iface_id already exists"])
 
     def test_validate_presence_of_tenant_id(self):
         interface = factory_models.InterfaceFactory.build(
@@ -2618,7 +2604,7 @@ class TestAllowedIp(tests.BaseTest):
 
     def test_find_allowed_ip_raises_model_not_found(self):
         interface = factory_models.InterfaceFactory(
-            vif_id_on_device="vif_1")
+            id="vif_1")
         self._plug_interface_into_network("AAA", interface)
         ip1 = self._ip_on_network("AAA")
         ip2 = self._ip_on_network("AAA")
@@ -2633,29 +2619,30 @@ class TestAllowedIp(tests.BaseTest):
                                     unshared_ip.address)
 
     def test_cannot_allow_ip_when_interface_is_pluged_into_other_network(self):
+        iface_id = utils.generate_uuid()
         interface_plugged_into_net1 = factory_models.InterfaceFactory(
-            vif_id_on_device="viffy")
+            id=iface_id)
         net1_block = factory_models.IpBlockFactory(network_id="1")
         net1_block.allocate_ip(interface_plugged_into_net1)
         net2_block = factory_models.IpBlockFactory(network_id="2")
         net2_ip = net2_block.allocate_ip(factory_models.InterfaceFactory())
 
-        err_msg = ("Ip %s cannot be allowed on interface viffy "
+        err_msg = ("Ip %s cannot be allowed on interface %s "
                    "as interface is not configured "
-                   "for ip's network") % net2_ip.address
+                   "for ip's network") % (net2_ip.address, iface_id)
         self.assertRaisesExcMessage(models.IpNotAllowedOnInterfaceError,
                                     err_msg,
                                     interface_plugged_into_net1.allow_ip,
                                     net2_ip)
 
     def test_cannot_allow_ip_if_interface_isnt_plugged_into_any_network(self):
-        unplugged_interface = factory_models.InterfaceFactory(
-            vif_id_on_device="vif_id")
+        iface_id = utils.generate_uuid()
+        unplugged_interface = factory_models.InterfaceFactory(id=iface_id)
         ip = factory_models.IpAddressFactory()
 
-        err_msg = ("Ip %s cannot be allowed on interface vif_id "
+        err_msg = ("Ip %s cannot be allowed on interface %s "
                    "as interface is not configured "
-                   "for ip's network") % ip.address
+                   "for ip's network") % (ip.address, iface_id)
         self.assertRaisesExcMessage(models.IpNotAllowedOnInterfaceError,
                                     err_msg,
                                     unplugged_interface.allow_ip,
