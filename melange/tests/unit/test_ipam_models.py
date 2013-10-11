@@ -48,7 +48,7 @@ class TestModelBase(tests.BaseTest):
         model = factory_models.PublicIpBlockFactory()
 
         self.assertNotEqual(model.id, "1234")
-    
+
     def test_create_sets_id_with_uuid_if_None_provided(self):
         model = factory_models.PublicIpBlockFactory(id=None)
 
