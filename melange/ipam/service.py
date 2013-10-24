@@ -431,7 +431,11 @@ class InterfacesController(BaseController, ShowAction, DeleteAction):
     def update(self, request, interface_id, body=None):
         interface = models.Interface.find_by(id=interface_id)
         # NOTE(jkoelker) only setting the vif_id_on_device is supported
-        vif_id_on_device = body['vif_id_on_device']
+        vif_id_on_device = body.get('vif_id_on_device',
+                                    body.get('vif_on_device'))
+        if vif_id_on_device is None:
+            raise KeyError("vif_id_on_device or vif_on_device keys not "
+                           "provided to update vif_id_on_device")
         interface.update(vif_id_on_device=vif_id_on_device)
         view_data = views.InterfaceConfigurationView(interface).data()
         return dict(interface=view_data)
