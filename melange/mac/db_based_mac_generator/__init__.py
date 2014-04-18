@@ -15,7 +15,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-#imports to allow these modules to be accessed by dynamic loading of this file
+# imports to allow these modules to be accessed by dynamic loading of this file
 from melange.mac.db_based_mac_generator import generator
 from melange.mac.db_based_mac_generator import mapper
 from melange.mac.db_based_mac_generator import models

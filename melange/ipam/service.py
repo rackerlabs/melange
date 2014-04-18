@@ -766,7 +766,7 @@ class APICommon(wsgi.Router):
                      action="restore",
                      conditions=dict(method=["PUT"]))
 
-            #mapper.resource here for ip addresses was slowing down the tests
+            # mapper.resource here for ip addresses was slowing down the tests
             _connect(submap, "/ip_addresses", action="create",
                      conditions=dict(method=["POST"]))
             _connect(submap, "/ip_addresses", action="index",

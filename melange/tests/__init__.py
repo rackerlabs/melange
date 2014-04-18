@@ -49,7 +49,7 @@ def test_config_file():
 class BaseTest(unittest.TestCase):
 
     def setUp(self):
-        #maxDiff=None ensures diff output of assert methods are not truncated
+        # maxDiff=None ensures diff output of assert methods are not truncated
         self.maxDiff = None
 
         self.mock = mox.Mox()
@@ -101,7 +101,7 @@ class BaseTest(unittest.TestCase):
     def assertUrlEqual(self, expected, actual):
         self.assertEqual(expected.partition("?")[0], actual.partition("?")[0])
 
-        #params ordering might be different in the urls
+        # params ordering might be different in the urls
         self.assertEqual(urlparse.parse_qs(expected.partition("?")[2]),
                          urlparse.parse_qs(actual.partition("?")[2]))
 
