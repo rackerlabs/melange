@@ -645,7 +645,7 @@ class TestIpBlock(tests.BaseTest):
         block = factory_models.PrivateIpBlockFactory(cidr="10.0.0.0/30")
         interface = factory_models.InterfaceFactory()
 
-        #allocate all ips except last ip(broadcast)
+        # allocate all ips except last ip(broadcast)
         for i in range(0, 3):
             block.allocate_ip(interface=interface)
 

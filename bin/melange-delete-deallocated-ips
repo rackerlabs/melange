@@ -26,7 +26,7 @@ This script can be run as a cron job on the melange server.
 
 """
 
-#TODO(jkoelker) Convert this to an entry_point
+# TODO(jkoelker) Convert this to an entry_point
 
 import gettext
 import optparse

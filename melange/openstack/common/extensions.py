@@ -217,7 +217,7 @@ class ExtensionMiddleware(wsgi.Middleware):
         """Return a dict of ActionExtensionResource-s by collection."""
         action_resources = {}
         for action in ext_mgr.get_actions():
-            if not action.collection in action_resources.keys():
+            if action.collection not in action_resources.keys():
                 resource = ActionExtensionResource(application)
                 mapper.connect("/%s/:(id)/action.:(format)" %
                                action.collection,
@@ -237,7 +237,7 @@ class ExtensionMiddleware(wsgi.Middleware):
         """Returns a dict of RequestExtensionResource-s by collection."""
         request_ext_resources = {}
         for req_ext in ext_mgr.get_request_extensions():
-            if not req_ext.key in request_ext_resources.keys():
+            if req_ext.key not in request_ext_resources.keys():
                 resource = RequestExtensionResource(application)
                 mapper.connect(req_ext.url_route + '.:(format)',
                                action='process',
